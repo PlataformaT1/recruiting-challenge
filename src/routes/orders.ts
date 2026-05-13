@@ -22,13 +22,14 @@ ordersRouter.get('/', (req, res) => {
   res.json({ orders });
 });
 
-
-//TODO: No authorization check on order access. 
-// Merchants could access orders that don't belong to them by guessing IDs. 
-// Add a check to ensure the order's merchant_id matches req.merchantId before returning the order.
 ordersRouter.get('/:id', (req, res) => {
   const order = ordersDal.getById(req.params.id);
   if (!order) {
+    res.status(404).json({ error: 'not_found' });
+    return;
+  }
+  // Authorization check: ensure the order belongs to the requesting merchant
+  if (order.merchant_id !== req.merchantId) {
     res.status(404).json({ error: 'not_found' });
     return;
   }
