@@ -52,6 +52,16 @@ ordersRouter.post('/', (req, res) => {
     res.status(400).json({ error: 'invalid_body' });
     return;
   }
+
+  // Validate refunds: ensure a corresponding sale exists
+  if (body.type === 'refund') {
+    const hasSale = ordersDal.hasSaleForCustomer(req.merchantId!, body.customer_email);
+    if (!hasSale) {
+      res.status(400).json({ error: 'no_sale_for_refund', detail: 'Cannot refund: no prior sale exists for this customer' });
+      return;
+    }
+  }
+
   const order = ordersDal.create({
     id: randomUUID(),
     merchant_id: req.merchantId!,
