@@ -21,6 +21,34 @@
       th, td { text-align: left; padding: 0.5rem; border-bottom: 1px solid #ccc4; }
       th { font-weight: 600; opacity: 0.8; }
       .muted { opacity: 0.6; }
+
+      /* ── Order filter panel ── */
+      .filter-panel { margin: 1.5rem 0; padding: 1.25rem; border: 1px solid #ccc4; border-radius: 8px; }
+      .filter-panel > h2 { margin: 0 0 1rem; font-size: 1rem; }
+      .nl-wrapper { position: relative; margin-bottom: 0.75rem; }
+      .nl-wrapper input { width: 100%; box-sizing: border-box; padding-right: 76px; }
+      .nl-badge { position: absolute; right: 8px; top: 50%; transform: translateY(-50%); font-size: 10px; background: #eee4; border: 1px solid #ccc4; opacity: 0.7; padding: 2px 7px; border-radius: 99px; pointer-events: none; }
+      .advanced-toggle { font: inherit; font-size: 0.8rem; opacity: 0.6; background: none; border: none; cursor: pointer; padding: 0; margin-bottom: 0.6rem; color: inherit; }
+      .advanced-toggle:hover { opacity: 1; }
+      .filter-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(175px, 1fr)); gap: 0.75rem; }
+      .filter-field { display: flex; flex-direction: column; gap: 3px; }
+      .filter-field label { font-size: 0.75rem; opacity: 0.65; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; }
+      .filter-field input, .filter-field select { font: inherit; font-size: 0.9rem; padding: 0.35rem 0.5rem; border: 1px solid #ccc4; border-radius: 5px; background: transparent; color: inherit; width: 100%; box-sizing: border-box; }
+      .filter-field input:focus, .filter-field select:focus { outline: 2px solid #09f3; outline-offset: 1px; }
+      .range-row { display: flex; align-items: center; gap: 6px; }
+      .range-row span { font-size: 0.8rem; opacity: 0.5; flex-shrink: 0; }
+      .range-row input { flex: 1; min-width: 0; }
+      .filter-actions { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; margin-top: 1rem; }
+      .btn-primary { padding: 0.4rem 1.1rem; background: #222; color: #fff; border: none; border-radius: 6px; font: inherit; font-size: 0.9rem; cursor: pointer; }
+      @media (prefers-color-scheme: dark) { .btn-primary { background: #e0e0e0; color: #111; } }
+      .btn-primary:hover { opacity: 0.8; }
+      .btn-ghost { padding: 0.4rem 0.85rem; background: transparent; border: 1px solid #ccc4; border-radius: 6px; font: inherit; font-size: 0.85rem; cursor: pointer; color: inherit; }
+      .btn-ghost:hover { background: #ccc2; }
+      .result-note { font-size: 0.8rem; opacity: 0.5; }
+      .active-chips { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 0.6rem; min-height: 4px; }
+      .chip { display: inline-flex; align-items: center; gap: 4px; font-size: 0.75rem; border: 1px solid #ccc4; border-radius: 99px; padding: 2px 8px; }
+      .chip-x { background: none; border: none; cursor: pointer; opacity: 0.5; font-size: 1rem; line-height: 1; padding: 0; color: inherit; }
+      .chip-x:hover { opacity: 1; }
     </style>
   </head>
   <body>
@@ -44,6 +72,76 @@
         <div class="card"><div class="label">Avg order value</div><div class="value" id="avg-order">—</div></div>
         <div class="card"><div class="label">Revenue (last 30 days)</div><div class="value" id="revenue-30d">—</div></div>
       </div>
+    </section>
+
+    <section class="filter-panel" id="order-filters" aria-label="Order filters">
+      <h2>Find orders</h2>
+
+      <div class="nl-wrapper">
+        <input type="text" id="f-nl" placeholder='Natural language: e.g. "refunds over $50 in April"' autocomplete="off" />
+        <span class="nl-badge">AI</span>
+      </div>
+
+      <button class="advanced-toggle" id="advanced-toggle" aria-expanded="true" aria-controls="advanced-fields">
+        ▾ Advanced filters
+      </button>
+
+      <div id="advanced-fields">
+        <div class="filter-grid">
+          <div class="filter-field">
+            <label for="f-email">Customer email</label>
+            <input type="email" id="f-email" placeholder="customer@example.com" autocomplete="off" />
+          </div>
+
+          <div class="filter-field">
+            <label for="f-status">Status</label>
+            <select id="f-status">
+              <option value="">All statuses</option>
+              <option value="completed">Completed</option>
+              <option value="pending">Pending</option>
+              <option value="cancelled">Cancelled</option>
+              <option value="refunded">Refunded</option>
+            </select>
+          </div>
+
+          <div class="filter-field">
+            <label for="f-type">Type</label>
+            <select id="f-type">
+              <option value="">All types</option>
+              <option value="sale">Sale</option>
+              <option value="refund">Refund</option>
+            </select>
+          </div>
+
+          <div class="filter-field" style="grid-column: span 2;">
+            <label>Date range</label>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.5rem;">
+              <input type="date" id="f-date-from" aria-label="Date from" />
+              <input type="date" id="f-date-to" aria-label="Date to" />
+            </div>
+          </div>
+
+          <div class="filter-field">
+            <label>Amount (USD)</label>
+            <div class="range-row">
+              <span>$</span>
+              <input type="number" id="f-amount-min" placeholder="Min" min="0" step="0.01" aria-label="Min amount" />
+              <span>–</span>
+              <span>$</span>
+              <input type="number" id="f-amount-max" placeholder="Max" min="0" step="0.01" aria-label="Max amount" />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="filter-actions">
+        <button class="btn-primary" id="filter-search-btn">Search orders</button>
+        <button class="btn-ghost" id="filter-reset-btn">Reset</button>
+        <button class="btn-ghost" id="filter-export-btn">Export CSV</button>
+        <span class="result-note" id="filter-result-note" aria-live="polite"></span>
+      </div>
+
+      <div class="active-chips" id="active-chips" role="list" aria-label="Active filters"></div>
     </section>
 
     <section>

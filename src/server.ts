@@ -1,3 +1,4 @@
+import 'dotenv/config.js';
 import express from 'express';
 import { initSchema } from './db.js';
 import { authMiddleware } from './auth.js';

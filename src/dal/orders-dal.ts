@@ -23,21 +23,40 @@ export interface OrderRow {
 // Implement offset-based or cursor-based pagination.
 
 export const ordersDal = {
-  listByMerchant(merchantId: string, opts: { from?: string; to?: string; limit?: number } = {}): OrderRow[] {
+  listByMerchant(
+    merchantId: string,
+    opts: {
+      from?: string;
+      to?: string;
+      limit?: number;
+      customer_email?: string;
+      status?: string;
+      type?: string;
+      amount_min?: number;
+      amount_max?: number;
+    } = {},
+  ): OrderRow[] {
     const limit = opts.limit ?? 100;
-    if (opts.from && opts.to) {
-      return db
-        .prepare(
-          `SELECT * FROM orders
-           WHERE merchant_id = ? AND created_at >= ? AND created_at < ?
-           ORDER BY created_at DESC
-           LIMIT ?`,
-        )
-        .all(merchantId, opts.from, opts.to, limit) as OrderRow[];
-    }
+    const conditions: string[] = ['merchant_id = ?'];
+    const params: (string | number)[] = [merchantId];
+
+    if (opts.from)           { conditions.push('created_at >= ?');    params.push(opts.from); }
+    if (opts.to)             { conditions.push('created_at < ?');     params.push(opts.to); }
+    if (opts.customer_email) { conditions.push('customer_email = ?'); params.push(opts.customer_email); }
+    if (opts.status)         { conditions.push('status = ?');         params.push(opts.status); }
+    if (opts.type)           { conditions.push('type = ?');           params.push(opts.type); }
+    if (opts.amount_min !== undefined) { conditions.push('total_amount >= ?'); params.push(opts.amount_min); }
+    if (opts.amount_max !== undefined) { conditions.push('total_amount <= ?'); params.push(opts.amount_max); }
+
+    params.push(limit);
     return db
-      .prepare(`SELECT * FROM orders WHERE merchant_id = ? ORDER BY created_at DESC LIMIT ?`)
-      .all(merchantId, limit) as OrderRow[];
+      .prepare(
+        `SELECT * FROM orders
+         WHERE ${conditions.join(' AND ')}
+         ORDER BY created_at DESC
+         LIMIT ?`,
+      )
+      .all(...params) as OrderRow[];
   },
 
   getById(id: string): OrderRow | undefined {
