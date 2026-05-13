@@ -1,6 +1,10 @@
 import { Router } from 'express';
 import Database from 'better-sqlite3';
 
+// TODO: Separate read-only database connection in metrics router! and never closed. 
+// Mentioned in docs
+// Multiple connections waste resources and don't scale.
+// Use single shared database instance passed from server context.
 const DB_PATH = process.env.DB_PATH ?? 'data/dashboard.db';
 const metricsDb = new Database(DB_PATH, { readonly: true });
 
@@ -11,6 +15,9 @@ export const metricsRouter = Router();
  *
  * Returns dashboard summary stats for the current merchant.
  */
+
+// (Duplicate of above: separate database connection violates single connection principle.) 
+
 metricsRouter.get('/summary', (req, res) => {
   const merchantId = req.merchantId!;
 
@@ -37,6 +44,10 @@ metricsRouter.get('/summary', (req, res) => {
     avg_order_value_cents: Math.round(avgOrderRow.avg),
   });
 });
+
+// TODO: Missing indexes on customer_email and calculated fields. 
+// Large datasets cause slow group-by queries and full table scans.
+// Add database indexes and consider materializing frequently-calculated values.
 
 metricsRouter.get('/top-customers', (req, res) => {
   const merchantId = req.merchantId!;

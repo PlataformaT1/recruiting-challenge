@@ -8,6 +8,11 @@ export const revenueRouter = Router();
  *
  * Returns total revenue for the authenticated merchant in the given date range.
  */
+
+// TODO: No date input validation on from/to parameters. 
+// Could cause SQL errors, nonsense results, or server exhaustion from massive ranges.
+// Validate date format, enforce reasonable range limits, and verify from <= to.
+
 revenueRouter.get('/', (req, res) => {
   const from = typeof req.query.from === 'string' ? req.query.from : undefined;
   const to = typeof req.query.to === 'string' ? req.query.to : undefined;
@@ -16,6 +21,8 @@ revenueRouter.get('/', (req, res) => {
     return;
   }
 
+  // TODO: Inconsistent response formats across endpoints (merchant_id included here but not in orders). 
+  // Standardize response schemas across all endpoints.
   const total = ordersDal.sumAmountByMerchant(req.merchantId!, from, to);
   res.json({
     merchant_id: req.merchantId,

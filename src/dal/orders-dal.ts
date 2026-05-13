@@ -17,6 +17,20 @@ export interface OrderRow {
  * - the place to add auditing, caching, tenancy filters
  * - the seam for swapping the underlying store
  */
+
+// TODO: sumAmountByMerchant() incorrectly sums all order amounts regardless of type. 
+// Refunds increase revenue instead of decreasing it.
+// Use conditional sum: include sales as positive, refunds as negative.
+
+// TODO: Missing offset parameter for pagination; only limit supported. 
+// Causes poor performance with large result sets.
+// Implement offset-based or cursor-based pagination.
+
+// TODO: createRefund() lacks validation: doesn't verify original sale exists, 
+// prevents negative amounts, or block duplicates. 
+// Orphaned/duplicate records corrupt data.
+// Validate sale existence, enforce positive amounts, and detect duplicate refunds.
+
 export const ordersDal = {
   listByMerchant(merchantId: string, opts: { from?: string; to?: string; limit?: number } = {}): OrderRow[] {
     const limit = opts.limit ?? 100;

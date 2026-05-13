@@ -6,6 +6,11 @@ import assert from 'node:assert/strict';
 import { initSchema, db } from '../src/db.js';
 import { ordersDal } from '../src/dal/orders-dal.js';
 
+// TODO: test isolation error,
+// tests share the same in-memory database connection, so state can leak between tests.
+// In a real test suite, we would want to reset the database state before each test, 
+// either by using transactions or by re-initializing the schema.
+// ad beforeEach or afterEach cleanup
 test('orders DAL: create + listByMerchant returns the order', () => {
   initSchema();
   db.prepare(`INSERT OR IGNORE INTO merchants (id, name) VALUES ('m_test', 'Test')`).run();

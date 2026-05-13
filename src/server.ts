@@ -23,6 +23,9 @@ app.use('/api/orders', authMiddleware, ordersRouter);
 app.use('/api/revenue', authMiddleware, revenueRouter);
 app.use('/api/metrics', authMiddleware, metricsRouter);
 
+// TODO: Generic catch-all error handler returns 500 for all errors. 
+// Clients can't distinguish invalid input (400) from actual server errors (500).
+// Handle validation errors in route handlers with appropriate status codes.
 app.use((err: Error, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
   console.error(err);
   res.status(500).json({ error: 'internal_error' });

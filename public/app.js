@@ -17,6 +17,9 @@ function isoDate(d) {
   return d.toISOString().slice(0, 10);
 }
 
+// TODO: No error handling in async API calls
+// failures silently result in undefined values. Users see empty dashes without knowing what failed.
+// Add try-catch and error callbacks with user-visible error messages.
 async function refresh() {
   const summary = await api('/api/metrics/summary');
   totalOrdersEl.textContent = summary.total_orders ?? '—';
@@ -32,6 +35,9 @@ async function refresh() {
   ordersTbody.innerHTML = '';
   for (const o of ordersRes.orders ?? []) {
     const tr = document.createElement('tr');
+    //TODO: inserting with innerHTML makes the app vulerable to XSS! 
+    // customer email could execute malicious javascript
+    // implement proper escaping or use textContent to set values safely.
     tr.innerHTML = `
       <td>${new Date(o.created_at).toLocaleDateString()}</td>
       <td>${o.customer_email}</td>

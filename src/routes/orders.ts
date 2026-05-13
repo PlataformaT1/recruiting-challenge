@@ -4,6 +4,15 @@ import { randomUUID } from 'node:crypto';
 
 export const ordersRouter = Router();
 
+// TODO: No date validation on from/to parameters. Could cause SQL errors or unexpected results. 
+// Validate date format and enforce range limits.
+
+// TODO: Missing offset parameter for pagination; only limit supported. 
+// Causes poor performance with large result sets. 
+// Implement offset-based or cursor-based pagination.
+
+// TODO: Unhandled exceptions in route. Returns generic 500 errors. 
+// Add try-catch blocks with meaningful error messages.
 ordersRouter.get('/', (req, res) => {
   const orders = ordersDal.listByMerchant(req.merchantId!, {
     from: typeof req.query.from === 'string' ? req.query.from : undefined,
@@ -13,6 +22,10 @@ ordersRouter.get('/', (req, res) => {
   res.json({ orders });
 });
 
+
+//TODO: No authorization check on order access. 
+// Merchants could access orders that don't belong to them by guessing IDs. 
+// Add a check to ensure the order's merchant_id matches req.merchantId before returning the order.
 ordersRouter.get('/:id', (req, res) => {
   const order = ordersDal.getById(req.params.id);
   if (!order) {
@@ -22,6 +35,13 @@ ordersRouter.get('/:id', (req, res) => {
   res.json({ order });
 });
 
+// TODO: POST endpoint doesn't validate type parameter against allowed values ('sale' | 'refund'). 
+// Invalid data gets stored, corrupting the database.
+// Validate type parameter before inserting orders.
+
+// TODO: Customer email input not validated (format, null check, etc.). 
+// Invalid or malicious data gets stored, breaking queries.
+// Validate email format and require non-empty values.
 ordersRouter.post('/', (req, res) => {
   const body = req.body as {
     customer_email?: string;

@@ -15,6 +15,8 @@ declare global {
  */
 export function authMiddleware(req: Request, res: Response, next: NextFunction): void {
   const merchantId = req.header('X-Merchant-Id');
+  //TODO, not checking if merchantId is valid. Might be because this is a toy app, 
+  // but in a real app we would want to check if the merchantId exists in our database and is active.
   if (!merchantId) {
     res.status(401).json({ error: 'missing_merchant_id' });
     return;
