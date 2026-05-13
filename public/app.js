@@ -35,15 +35,22 @@ async function refresh() {
   ordersTbody.innerHTML = '';
   for (const o of ordersRes.orders ?? []) {
     const tr = document.createElement('tr');
-    //TODO: inserting with innerHTML makes the app vulerable to XSS! 
-    // customer email could execute malicious javascript
-    // implement proper escaping or use textContent to set values safely.
-    tr.innerHTML = `
-      <td>${new Date(o.created_at).toLocaleDateString()}</td>
-      <td>${o.customer_email}</td>
-      <td>${o.type}</td>
-      <td>${money(o.total_amount)}</td>
-    `;
+
+    // FIX: Create each <td> individually and assign values via textContent,
+    // so the browser never parses the data as HTML — eliminating XSS risk.
+    const cells = [
+      new Date(o.created_at).toLocaleDateString(),
+      o.customer_email,
+      o.type,
+      money(o.total_amount),
+    ];
+
+    for (const value of cells) {
+      const td = document.createElement('td');
+      td.textContent = value;
+      tr.appendChild(td);
+    }
+
     ordersTbody.appendChild(tr);
   }
 }
