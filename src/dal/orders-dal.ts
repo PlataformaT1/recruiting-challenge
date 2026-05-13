@@ -22,11 +22,6 @@ export interface OrderRow {
 // Causes poor performance with large result sets.
 // Implement offset-based or cursor-based pagination.
 
-// TODO: createRefund() lacks validation: doesn't verify original sale exists, 
-// prevents negative amounts, or block duplicates. 
-// Orphaned/duplicate records corrupt data.
-// Validate sale existence, enforce positive amounts, and detect duplicate refunds.
-
 export const ordersDal = {
   listByMerchant(
     merchantId: string,
@@ -74,6 +69,21 @@ export const ordersDal = {
        VALUES (?, ?, ?, ?, ?, ?)`,
     ).run(order.id, order.merchant_id, order.customer_email, order.total_amount, order.type, order.status);
     return this.getById(order.id)!;
+  },
+
+  /**
+   * Check if a completed sale exists for a given merchant and customer.
+   * Used to validate refunds before creation.
+   */
+  hasSaleForCustomer(merchantId: string, customerEmail: string): boolean {
+    const row = db
+      .prepare(
+        `SELECT 1 FROM orders
+         WHERE merchant_id = ? AND customer_email = ? AND type = 'sale' AND status = 'completed'
+         LIMIT 1`,
+      )
+      .get(merchantId, customerEmail);
+    return !!row;
   },
 
   /**

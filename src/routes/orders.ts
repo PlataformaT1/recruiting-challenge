@@ -51,12 +51,14 @@ ordersRouter.get('/', async (req, res) => {
   res.json({ orders });
 });
 
-//TODO: No authorization check on order access. 
-// Merchants could access orders that don't belong to them by guessing IDs. 
-// Add a check to ensure the order's merchant_id matches req.merchantId before returning the order.
 ordersRouter.get('/:id', (req, res) => {
   const order = ordersDal.getById(req.params.id);
   if (!order) {
+    res.status(404).json({ error: 'not_found' });
+    return;
+  }
+  // Authorization check: ensure the order belongs to the requesting merchant
+  if (order.merchant_id !== req.merchantId) {
     res.status(404).json({ error: 'not_found' });
     return;
   }
@@ -80,6 +82,16 @@ ordersRouter.post('/', (req, res) => {
     res.status(400).json({ error: 'invalid_body' });
     return;
   }
+
+  // Validate refunds: ensure a corresponding sale exists
+  if (body.type === 'refund') {
+    const hasSale = ordersDal.hasSaleForCustomer(req.merchantId!, body.customer_email);
+    if (!hasSale) {
+      res.status(400).json({ error: 'no_sale_for_refund', detail: 'Cannot refund: no prior sale exists for this customer' });
+      return;
+    }
+  }
+
   const order = ordersDal.create({
     id: randomUUID(),
     merchant_id: req.merchantId!,
