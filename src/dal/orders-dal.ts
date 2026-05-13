@@ -18,10 +18,6 @@ export interface OrderRow {
  * - the seam for swapping the underlying store
  */
 
-// TODO: sumAmountByMerchant() incorrectly sums all order amounts regardless of type. 
-// Refunds increase revenue instead of decreasing it.
-// Use conditional sum: include sales as positive, refunds as negative.
-
 // TODO: Missing offset parameter for pagination; only limit supported. 
 // Causes poor performance with large result sets.
 // Implement offset-based or cursor-based pagination.
@@ -68,9 +64,9 @@ export const ordersDal = {
   sumAmountByMerchant(merchantId: string, from: string, to: string): number {
     const row = db
       .prepare(
-        `SELECT COALESCE(SUM(total_amount), 0) AS total
-         FROM orders
-         WHERE merchant_id = ? AND created_at >= ? AND created_at < ?`,
+        `SELECT COALESCE(SUM(CASE WHEN type = 'refund' THEN -total_amount ELSE total_amount END), 0) AS total
+        FROM orders
+        WHERE merchant_id = ? AND created_at >= ? AND created_at < ?`,
       )
       .get(merchantId, from, to) as { total: number };
     return row.total;
