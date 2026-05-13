@@ -1,4 +1,4 @@
-# Decision Log — Sofia López
+# Decision Log — Sofia Moreno
 
 ## Issues addressed
 
